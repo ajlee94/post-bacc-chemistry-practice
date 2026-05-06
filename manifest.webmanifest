@@ -1,0 +1,11 @@
+{
+  "name": "後中醫化學題庫練習",
+  "short_name": "化學題庫",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f4f6f8",
+  "theme_color": "#1f6f68",
+  "lang": "zh-Hant",
+  "icons": []
+}
