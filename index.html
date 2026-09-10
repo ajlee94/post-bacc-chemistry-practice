@@ -366,7 +366,7 @@ function render(){
   teaching($('concept-content'),q.concept);
   $('explanations').replaceChildren(...options.map((o,i)=>{const li=document.createElement('li'),body=document.createElement('div'),correct=o.id===q.correct;li.append(textElement('b','ABCD'[i]));body.append(textElement('strong','「'+o.text+'」'),textElement('span',correct?'正確':'錯誤',correct?'verdict correct-text':'verdict incorrect-text'),textElement('p',o.explanation));li.append(body);return li;}));$('answer-source').textContent='來源：'+q.source;$('answer-example').textContent=q.example||'';$('answer-example').hidden=!q.example;
  }
- $('previous').disabled=s.at===0;$('next').disabled=s.at===9;$('view-results').hidden=!stats.complete;messages();
+ $('previous').disabled=s.at===0;$('next').disabled=false;$('next').textContent=s.at===9?(stats.complete?'查看本組統計':'補答剩餘 '+(10-stats.answered)+' 題'):'下一題';$('view-results').hidden=!stats.complete;messages();
 }
 function focusQuestion(){$('question-title').focus({preventScroll:true});$('question-title').scrollIntoView({block:'nearest'});}
 function draw(){if(drawing)return;drawing=true;try{engine.start();selecting=false;stopResultMotion();render();closeCatalog();focusQuestion();say('已抽出新的十題。');}finally{setTimeout(()=>{drawing=false;},350);}}
@@ -389,7 +389,7 @@ $('panel-close').addEventListener('click',()=>closeCatalog(true));$('back-to-qui
 dialog.addEventListener('cancel',e=>{e.preventDefault();closeCatalog(true);});dialog.addEventListener('close',()=>{panelMode=null;panel.hidden=true;document.body.style.overflow='';reflectPanel();});
 dialog.addEventListener('click',e=>{if(e.target===dialog){const r=dialog.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)closeCatalog(true);}});
 $('start-set').addEventListener('click',()=>attempt(draw));$('resume-set').addEventListener('click',()=>attempt(()=>{selecting=false;render();closeCatalog();if(engine.statistics().complete)showResults(false);else focusQuestion();}));
-$('previous').addEventListener('click',()=>reviewQuestion(Math.max(0,engine.current().at-1)));$('next').addEventListener('click',()=>reviewQuestion(Math.min(9,engine.current().at+1)));
+$('previous').addEventListener('click',()=>reviewQuestion(Math.max(0,engine.current().at-1)));$('next').addEventListener('click',()=>{const s=engine.current();if(s.at===9){if(engine.statistics(s).complete)showResults();else{const missing=s.answers.findIndex(a=>a===null);reviewQuestion(missing);say('還有 '+(10-engine.statistics(s).answered)+' 題未作答，已前往第 '+(missing+1)+' 題。');}}else reviewQuestion(s.at+1);});
 function reset(){attempt(()=>{engine.reset();selecting=false;stopResultMotion();render();focusQuestion();say('本組十題答案與統計已清空，原題、題序及選項順序均保留。');});}
 $('reset').addEventListener('click',reset);$('result-reset').addEventListener('click',reset);$('view-results').addEventListener('click',()=>showResults());
 $('review-all').addEventListener('click',()=>reviewQuestion(0));$('review-wrong').addEventListener('click',()=>{const s=engine.current(),i=s.answers.findIndex((a,j)=>a!==engine.question(s,j).correct);if(i>=0)reviewQuestion(i);});
