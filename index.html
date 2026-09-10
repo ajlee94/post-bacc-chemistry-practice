@@ -115,7 +115,7 @@ button.result-key:hover{background:#dbefe5;border-color:var(--accent)}button.res
 @media(prefers-reduced-motion:reduce){.results-card.is-celebrating .flask-bubble{opacity:0}.results-card.is-celebrating .flask-liquid{transform:none}}
 
 #question-title{white-space:pre-wrap;overflow-wrap:anywhere}#answer-example{white-space:pre-wrap;margin-top:12px}.source,.explanations{overflow-wrap:anywhere}#selection-card p{margin-top:12px}.depth-choice{padding:10px 0}.depth-choice button{width:100%;text-align:left}.depth-choice [aria-pressed="true"]{border-color:var(--accent);background:var(--tint)}.depth-choice p{margin-top:6px}#fatal-message,#runtime-message{padding:12px;border:1px solid var(--wrong);background:var(--wrong-bg);margin-bottom:12px}
-.school-picker{margin:0 0 24px}.school-picker h2{font-size:1rem;font-weight:650;margin:0 0 10px}.school-choices{display:flex;flex-wrap:wrap;gap:8px}.school-choice{min-height:44px;flex:1 1 140px;border:1px solid var(--line);border-radius:10px;background:var(--paper);color:var(--ink);padding:10px 14px;font:inherit;cursor:pointer}.school-choice:hover{background:var(--tint)}.school-choice[aria-pressed="true"]{background:var(--tint);border-color:var(--accent);font-weight:700;color:var(--accent)}.school-choice:focus-visible{outline:2px solid var(--accent);outline-offset:3px}#school-notice{margin:12px 0 0;max-width:70ch;line-height:1.7}.session-context{display:flex;flex-wrap:wrap;gap:8px 16px}#school-label{font-weight:650}@media(max-width:480px){.school-choices{gap:6px}.school-choice{flex:1 1 0;min-width:0;padding:10px 6px;font-size:.875rem}.school-picker{margin-bottom:20px}}
+.school-picker{margin:0 0 20px}.school-picker-row{display:flex;align-items:center;gap:12px}.school-picker label{flex:none;font-size:.875rem;font-weight:650}#school-select{min-height:44px;min-width:0;max-width:100%;width:190px;border:1px solid var(--line);border-radius:10px;background:var(--paper);color:var(--ink);padding:8px 10px;font:inherit;cursor:pointer}#school-select:hover{background:var(--tint)}#school-select:focus-visible{outline:2px solid var(--accent);outline-offset:3px}#school-notice{margin:8px 0 0;max-width:70ch;line-height:1.7}.session-context{display:flex;flex-wrap:wrap;gap:8px 16px}#school-label{font-weight:650}
 </style></head><body class="b-variant layout-b3">
 
 <a class="skip-link" href="#main-content">跳至測驗</a>
@@ -129,7 +129,7 @@ button.result-key:hover{background:#dbefe5;border-color:var(--accent)}button.res
 <div class="panel-bottom"><button class="ghost" id="back-to-quiz">返回作答</button></div>
 </section></aside><main class="main-column" id="main-content" tabindex="-1">
 <p id="fatal-message" role="alert" hidden></p><p id="runtime-message" role="alert" hidden></p><p id="storage-message" class="small" role="status" hidden></p><noscript>此測驗需要啟用瀏覽器的 JavaScript。</noscript>
-<section class="school-picker" aria-labelledby="school-picker-title"><h2 id="school-picker-title">出題版本</h2><div id="school-choices" class="school-choices" role="group" aria-label="選擇學校"></div><p class="small" id="school-notice"></p></section>
+<section class="school-picker" aria-labelledby="school-picker-title"><div class="school-picker-row"><label id="school-picker-title" for="school-select">出題版本</label><select id="school-select" aria-describedby="school-notice"></select></div><p class="small" id="school-notice"></p></section>
 <div class="session-context"><span id="school-label"></span><span id="route-label"></span></div>
 <article class="card" id="selection-card"><h1 id="selection-title" tabindex="-1"></h1><p id="selection-context" class="small"></p><p id="selection-counts" class="small"></p><p id="selection-state"></p><div class="complete-actions"><button id="resume-set" class="primary" hidden>繼續本組</button><button id="start-set" class="primary">開始測驗</button></div><p class="small" id="selection-blocked-depth"></p></article>
 <article class="card" id="quiz-card" aria-labelledby="quiz-title" hidden><header class="card-head"><p class="chapter"></p><h1 id="quiz-title" tabindex="-1"></h1><div class="metadata"><span class="tag" id="quiz-depth"></span><span id="position"></span><span id="answered"></span><span id="score" hidden></span></div><div class="progress" role="progressbar" aria-label="作答進度" aria-valuemin="0" aria-valuemax="10" aria-valuenow="0"><span id="progress-fill"></span></div></header>
@@ -274,7 +274,9 @@ function attempt(fn){try{fn();}catch(e){$('runtime-message').hidden=false;$('run
 function messages(){const text=engine.messages.join(' ');$('storage-message').textContent=text;$('storage-message').hidden=!text;}
 function node(){return engine.node(engine.selected.id);}
 function buildSchools(){
- $('school-choices').replaceChildren(...engine.schools.map(s=>{const b=textElement('button',s.label,'school-choice');b.type='button';b.dataset.school=s.id;b.setAttribute('aria-pressed',String(s.id===engine.school));b.addEventListener('click',()=>attempt(()=>{if(drawing)return;engine.selectSchool(s.id);selecting=true;stopResultMotion();render();closeCatalog();say('已切換至'+s.label+'，原學校作答紀錄已保留。');}));return b;}));
+ const select=$('school-select');
+ select.replaceChildren(...engine.schools.map(s=>{const option=textElement('option',s.label);option.value=s.id;return option;}));
+ select.addEventListener('change',()=>{attempt(()=>{if(drawing||select.value===engine.school)return;engine.selectSchool(select.value);selecting=true;stopResultMotion();render();closeCatalog();say('已切換至'+engine.schoolInfo().label+'，原學校作答紀錄已保留。');});select.value=engine.school;});
  $('school-notice').textContent=engine.data.schoolNotice||'可切換學校，作答紀錄分別保存。';
 }
 function textElement(tag,text,className){const e=document.createElement(tag);e.textContent=text;if(className)e.className=className;return e;}
@@ -311,7 +313,7 @@ function renderSelection(){
 }
 function render(){
  const n=node(),s=engine.current();$('route-label').textContent='路線深度：'+n.routeDepth;
- $('school-label').textContent=engine.schoolInfo().label+'版';document.querySelectorAll('[data-school]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.school===engine.school)));
+ $('school-label').textContent=engine.schoolInfo().label+'版';$('school-select').value=engine.school;
  document.querySelectorAll('.leaf').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.node===n.id)));renderDepth();renderSelection();
  $('selection-card').hidden=!selecting;$('quiz-card').hidden=selecting||!s;$('results-card').hidden=true;document.body.classList.remove('result-view');
  if(selecting||!s){messages();return;}
